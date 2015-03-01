@@ -85,7 +85,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
 
     private void addNewIssue() {
         String title = "Feature request: removing issues";
-        String body = "Add feature for removing issues";
+        String body = "Add function to remove issues";
         User user = new User("kboyarshinov");
         List<Label> labels = new ArrayList<>();
         labels.add(new Label("feature", "FF5722"));
