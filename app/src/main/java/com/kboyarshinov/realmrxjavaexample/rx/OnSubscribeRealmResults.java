@@ -28,25 +28,6 @@ public abstract class OnSubscribeRealmResults<T extends RealmObject> implements 
     @Override
     public void call(final Subscriber<? super RealmResults<T>> subscriber) {
         final Realm realm = dbName != null ? Realm.getInstance(context, dbName) : Realm.getInstance(context);
-
-        RealmResults<T> object = null;
-        realm.beginTransaction();
-        try {
-            object = get(realm);
-            realm.commitTransaction();
-        } catch (RuntimeException e) {
-            realm.cancelTransaction();
-            subscriber.onError(new RealmException("Error during transaction.", e));
-            subscriber.onCompleted();
-        } catch (Error e) {
-            realm.cancelTransaction();
-            subscriber.onError(e);
-            subscriber.onCompleted();
-        }
-        if (object != null)
-            subscriber.onNext(object);
-        subscriber.onCompleted();
-
         subscriber.add(Subscriptions.create(new Action0() {
             @Override
             public void call() {
@@ -57,6 +38,25 @@ public abstract class OnSubscribeRealmResults<T extends RealmObject> implements 
                 }
             }
         }));
+
+        RealmResults<T> object;
+        realm.beginTransaction();
+        try {
+            object = get(realm);
+            realm.commitTransaction();
+        } catch (RuntimeException e) {
+            realm.cancelTransaction();
+            subscriber.onError(new RealmException("Error during transaction.", e));
+            return;
+        } catch (Error e) {
+            realm.cancelTransaction();
+            subscriber.onError(e);
+            return;
+        }
+        if (object != null) {
+            subscriber.onNext(object);
+        }
+        subscriber.onCompleted();
     }
 
     public abstract RealmResults<T> get(Realm realm);
