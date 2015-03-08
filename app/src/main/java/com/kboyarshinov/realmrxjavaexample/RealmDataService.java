@@ -23,7 +23,7 @@ public class RealmDataService implements DataService {
     private final Context context;
 
     public RealmDataService(Context context) {
-        this.context = context;
+        this.context = context.getApplicationContext();
     }
 
     @Override

@@ -15,12 +15,11 @@ public abstract class OnSubscribeRealm<T extends RealmObject> implements Observa
     private String fileName;
 
     public OnSubscribeRealm(Context context) {
-        this.context = context;
-        fileName = null;
+        this(context, null);
     }
 
     public OnSubscribeRealm(Context context, String fileName) {
-        this.context = context;
+        this.context = context.getApplicationContext();
         this.fileName = fileName;
     }
 

@@ -16,12 +16,11 @@ public abstract class OnSubscribeRealmResults<T extends RealmObject> implements 
     private String dbName;
 
     public OnSubscribeRealmResults(Context context) {
-        this.context = context;
-        dbName = null;
+        this(context, null);
     }
 
     public OnSubscribeRealmResults(Context context, String dbName) {
-        this.context = context;
+        this.context = context.getApplicationContext();
         this.dbName = dbName;
     }
 

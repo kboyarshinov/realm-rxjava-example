@@ -16,12 +16,11 @@ public abstract class OnSubscribeRealmList<T extends RealmObject> implements Obs
     private String fileName;
 
     public OnSubscribeRealmList(Context context) {
-        this.context = context;
-        fileName = null;
+        this(context, null);
     }
 
     public OnSubscribeRealmList(Context context, String fileName) {
-        this.context = context;
+        this.context = context.getApplicationContext();
         this.fileName = fileName;
     }
 
