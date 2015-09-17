@@ -45,6 +45,7 @@ abstract class OnSubscribeRealm<T> implements Observable.OnSubscribe<T> {
         }
         Realm realm = Realm.getInstance(builder.build());
         boolean interrupted = false;
+        boolean withError = false;
 
         T object = null;
         try {
@@ -62,17 +63,16 @@ abstract class OnSubscribeRealm<T> implements Observable.OnSubscribe<T> {
         } catch (RuntimeException e) {
             realm.cancelTransaction();
             subscriber.onError(new RealmException("Error during transaction.", e));
-            return;
+            withError = true;
         } catch (Error e) {
             realm.cancelTransaction();
             subscriber.onError(e);
-            return;
+            withError = true;
         }
-        if (object != null && !interrupted) {
+        if (object != null && !interrupted && !withError) {
             subscriber.onNext(object);
         }
 
-        boolean withError = false;
         try {
             realm.close();
         } catch (RealmException ex) {
