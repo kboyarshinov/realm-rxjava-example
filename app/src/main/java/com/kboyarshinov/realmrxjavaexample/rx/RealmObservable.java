@@ -32,7 +32,7 @@ public final class RealmObservable {
     }
 
     public static <T extends RealmObject> Observable<RealmList<T>> list(Context context, final Func1<Realm, RealmList<T>> function) {
-        return Observable.create(new OnSubscribeRealmList<T>(context) {
+        return Observable.create(new OnSubscribeRealm<RealmList<T>>(context) {
             @Override
             public RealmList<T> get(Realm realm) {
                 return function.call(realm);
@@ -41,7 +41,7 @@ public final class RealmObservable {
     }
 
     public static <T extends RealmObject> Observable<RealmList<T>> list(Context context, String fileName, final Func1<Realm, RealmList<T>> function) {
-        return Observable.create(new OnSubscribeRealmList<T>(context, fileName) {
+        return Observable.create(new OnSubscribeRealm<RealmList<T>>(context, fileName) {
             @Override
             public RealmList<T> get(Realm realm) {
                 return function.call(realm);
@@ -50,7 +50,7 @@ public final class RealmObservable {
     }
 
     public static <T extends RealmObject> Observable<RealmResults<T>> results(Context context, final Func1<Realm, RealmResults<T>> function) {
-        return Observable.create(new OnSubscribeRealmResults<T>(context) {
+        return Observable.create(new OnSubscribeRealm<RealmResults<T>>(context) {
             @Override
             public RealmResults<T> get(Realm realm) {
                 return function.call(realm);
@@ -59,7 +59,7 @@ public final class RealmObservable {
     }
 
     public static <T extends RealmObject> Observable<RealmResults<T>> results(Context context, String fileName, final Func1<Realm, RealmResults<T>> function) {
-        return Observable.create(new OnSubscribeRealmResults<T>(context, fileName) {
+        return Observable.create(new OnSubscribeRealm<RealmResults<T>>(context, fileName) {
             @Override
             public RealmResults<T> get(Realm realm) {
                 return function.call(realm);

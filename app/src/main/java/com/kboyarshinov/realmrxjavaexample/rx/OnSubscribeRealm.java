@@ -1,16 +1,17 @@
 package com.kboyarshinov.realmrxjavaexample.rx;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 
 import io.realm.Realm;
-import io.realm.RealmObject;
+import io.realm.RealmConfiguration;
 import io.realm.exceptions.RealmException;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Action0;
 import rx.subscriptions.Subscriptions;
 
-public abstract class OnSubscribeRealm<T extends RealmObject> implements Observable.OnSubscribe<T> {
+abstract class OnSubscribeRealm<T> implements Observable.OnSubscribe<T> {
     private Context context;
     private String fileName;
 
@@ -23,25 +24,41 @@ public abstract class OnSubscribeRealm<T extends RealmObject> implements Observa
         this.fileName = fileName;
     }
 
+    @Nullable
+    private Thread thread;
+
     @Override
     public void call(final Subscriber<? super T> subscriber) {
-        final Realm realm = fileName != null ? Realm.getInstance(context, fileName) : Realm.getInstance(context);
+        thread = Thread.currentThread();
         subscriber.add(Subscriptions.create(new Action0() {
             @Override
             public void call() {
-                try {
-                    realm.close();
-                } catch (RealmException ex) {
-                    subscriber.onError(ex);
+                if (thread != null && !thread.isInterrupted()) {
+                    thread.interrupt();
                 }
             }
         }));
 
-        T object;
-        realm.beginTransaction();
+        RealmConfiguration.Builder builder = new RealmConfiguration.Builder(context);
+        if (fileName != null) {
+            builder.name(fileName);
+        }
+        Realm realm = Realm.getInstance(builder.build());
+        boolean interrupted = false;
+
+        T object = null;
         try {
-            object = get(realm);
-            realm.commitTransaction();
+            while (!interrupted) {
+                realm.beginTransaction();
+                object = get(realm);
+                interrupted = thread.isInterrupted();
+                if (object != null) {
+                    realm.commitTransaction();
+                    break;
+                } else {
+                    realm.cancelTransaction();
+                }
+            }
         } catch (RuntimeException e) {
             realm.cancelTransaction();
             subscriber.onError(new RealmException("Error during transaction.", e));
@@ -51,11 +68,25 @@ public abstract class OnSubscribeRealm<T extends RealmObject> implements Observa
             subscriber.onError(e);
             return;
         }
-        if (object != null) {
+        if (object != null && !interrupted) {
             subscriber.onNext(object);
         }
-        subscriber.onCompleted();
+
+        boolean withError = false;
+        try {
+            realm.close();
+        } catch (RealmException ex) {
+            subscriber.onError(ex);
+            withError = true;
+        }
+        thread = null;
+        if (!withError) {
+            subscriber.onCompleted();
+        }
+        if (interrupted) {
+            Thread.currentThread().interrupt();
+        }
     }
 
-    public abstract T get(Realm realm);
+    public abstract T get(Realm realm) ;
 }

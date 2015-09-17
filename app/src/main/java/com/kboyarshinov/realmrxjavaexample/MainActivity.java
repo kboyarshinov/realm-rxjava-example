@@ -1,12 +1,9 @@
 package com.kboyarshinov.realmrxjavaexample;
 
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 
 import com.kboyarshinov.realmrxjavaexample.model.Issue;
 import com.kboyarshinov.realmrxjavaexample.model.Label;
@@ -15,7 +12,6 @@ import com.kboyarshinov.realmrxjavaexample.model.User;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.realm.Realm;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -23,7 +19,7 @@ import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 
 
-public class MainActivity extends ActionBarActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = "MainActivity";
 
     private DataService dataService;
@@ -62,8 +58,8 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
 
     private void requestAllIssues() {
         Subscription subscription = dataService.issues().
-            subscribeOn(Schedulers.io()).
             observeOn(AndroidSchedulers.mainThread()).
+            subscribeOn(Schedulers.io()).
             subscribe(
                 new Action1<List<Issue>>() {
                     @Override
@@ -90,8 +86,8 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         List<Label> labels = new ArrayList<>();
         labels.add(new Label("feature", "FF5722"));
         Subscription subscription = dataService.newIssue(title, body, user, labels).
-            subscribeOn(Schedulers.io()).
             observeOn(AndroidSchedulers.mainThread()).
+            subscribeOn(Schedulers.io()).
             subscribe(
                 new Action1<Issue>() {
                     @Override
