@@ -49,16 +49,13 @@ abstract class OnSubscribeRealm<T> implements Observable.OnSubscribe<T> {
 
         T object = null;
         try {
-            while (!interrupted) {
-                realm.beginTransaction();
-                object = get(realm);
-                interrupted = thread.isInterrupted();
-                if (object != null) {
-                    realm.commitTransaction();
-                    break;
-                } else {
-                    realm.cancelTransaction();
-                }
+            realm.beginTransaction();
+            object = get(realm);
+            interrupted = thread.isInterrupted();
+            if (object != null && !interrupted) {
+                realm.commitTransaction();
+            } else {
+                realm.cancelTransaction();
             }
         } catch (RuntimeException e) {
             realm.cancelTransaction();
@@ -88,5 +85,5 @@ abstract class OnSubscribeRealm<T> implements Observable.OnSubscribe<T> {
         }
     }
 
-    public abstract T get(Realm realm) ;
+    public abstract T get(Realm realm);
 }
