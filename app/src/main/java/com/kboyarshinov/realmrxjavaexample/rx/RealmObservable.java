@@ -31,6 +31,27 @@ public final class RealmObservable {
         });
     }
 
+
+    public static <T extends RealmObject> Observable<Boolean> delete(Context context, final Func1<Realm, T> function) {
+        return Observable.create(new OnSubscribeRealm<Boolean>(context) {
+            @Override
+            public Boolean get(Realm realm) {
+                function.call(realm).removeFromRealm();
+                return Boolean.TRUE;
+            }
+        });
+    }
+
+    public static <T extends RealmObject> Observable<Boolean> delete(Context context, String fileName, final Func1<Realm, T> function) {
+        return Observable.create(new OnSubscribeRealm<Boolean>(context, fileName) {
+            @Override
+            public Boolean get(Realm realm) {
+                function.call(realm).removeFromRealm();
+                return Boolean.TRUE;
+            }
+        });
+    }
+
     public static <T extends RealmObject> Observable<RealmList<T>> list(Context context, final Func1<Realm, RealmList<T>> function) {
         return Observable.create(new OnSubscribeRealm<RealmList<T>>(context) {
             @Override
