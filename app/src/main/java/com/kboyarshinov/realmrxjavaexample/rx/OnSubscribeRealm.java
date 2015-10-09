@@ -1,7 +1,8 @@
 package com.kboyarshinov.realmrxjavaexample.rx;
 
 import android.content.Context;
-import android.support.annotation.Nullable;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -24,18 +25,21 @@ abstract class OnSubscribeRealm<T> implements Observable.OnSubscribe<T> {
         this.fileName = fileName;
     }
 
-    @Nullable
-    private Thread thread;
+    private AtomicBoolean canceled;
 
     @Override
     public void call(final Subscriber<? super T> subscriber) {
-        thread = Thread.currentThread();
+        if (canceled != null) {
+            // prevent multiple subscribers
+            subscriber.onError(new IllegalStateException("Only single subscriber allowed"));
+            return;
+        }
+        canceled = new AtomicBoolean();
         subscriber.add(Subscriptions.create(new Action0() {
             @Override
             public void call() {
-                if (thread != null && !thread.isInterrupted()) {
-                    thread.interrupt();
-                }
+                canceled.set(true);
+                canceled = null;
             }
         }));
 
@@ -44,15 +48,13 @@ abstract class OnSubscribeRealm<T> implements Observable.OnSubscribe<T> {
             builder.name(fileName);
         }
         Realm realm = Realm.getInstance(builder.build());
-        boolean interrupted = false;
         boolean withError = false;
 
         T object = null;
         try {
             realm.beginTransaction();
             object = get(realm);
-            interrupted = thread.isInterrupted();
-            if (object != null && !interrupted) {
+            if (object != null && !canceled.get()) {
                 realm.commitTransaction();
             } else {
                 realm.cancelTransaction();
@@ -66,7 +68,7 @@ abstract class OnSubscribeRealm<T> implements Observable.OnSubscribe<T> {
             subscriber.onError(e);
             withError = true;
         }
-        if (object != null && !interrupted && !withError) {
+        if (object != null && !canceled.get() && !withError) {
             subscriber.onNext(object);
         }
 
@@ -76,12 +78,8 @@ abstract class OnSubscribeRealm<T> implements Observable.OnSubscribe<T> {
             subscriber.onError(ex);
             withError = true;
         }
-        thread = null;
         if (!withError) {
             subscriber.onCompleted();
-        }
-        if (interrupted) {
-            Thread.currentThread().interrupt();
         }
     }
 

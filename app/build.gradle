@@ -31,5 +31,5 @@ dependencies {
     compile 'io.reactivex:rxandroid:1.0.1'
 
     // Realm
-    compile 'io.realm:realm-android:0.82.2'
+    compile 'io.realm:realm-android:0.83.1-SNAPSHOT'
 }

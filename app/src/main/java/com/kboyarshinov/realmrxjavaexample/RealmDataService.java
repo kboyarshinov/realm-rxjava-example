@@ -27,7 +27,7 @@ public class RealmDataService implements DataService {
     }
 
     @Override
-    public Observable<List<Issue>> issues() {
+    public Observable<List<Issue>> issuesList() {
         return RealmObservable.results(context, new Func1<Realm, RealmResults<RealmIssue>>() {
             @Override
             public RealmResults<RealmIssue> call(Realm realm) {
@@ -52,7 +52,7 @@ public class RealmDataService implements DataService {
         // map internal UI objects to Realm objects
         final RealmUser realmUser = new RealmUser();
         realmUser.setLogin(user.getLogin());
-        final RealmList<RealmLabel> realmLabels = new RealmList<RealmLabel>();
+        final RealmList<RealmLabel> realmLabels = new RealmList<>();
         for (Label label : labels) {
             RealmLabel realmLabel = new RealmLabel();
             realmLabel.setName(label.getName());
@@ -82,6 +82,41 @@ public class RealmDataService implements DataService {
             public Issue call(RealmIssue realmIssue) {
                 // map to UI object
                 return issueFromRealm(realmIssue);
+            }
+        });
+    }
+
+    @Override
+    public Observable<User> findUser(final String username) {
+        return RealmObservable.object(context, new Func1<Realm, RealmUser>() {
+            @Override
+            public RealmUser call(Realm realm) {
+                return realm.where(RealmUser.class).equalTo("login", username).findFirst();
+            }
+        }).map(new Func1<RealmUser, User>() {
+            @Override
+            public User call(RealmUser realmUser) {
+                return userFromRealm(realmUser);
+            }
+        });
+    }
+
+    @Override
+    public Observable<List<Issue>> issuesListByUser(final User user) {
+        return issues().filter(new Func1<Issue, Boolean>() {
+            @Override
+            public Boolean call(Issue issue) {
+                return issue.getUser().getLogin().equals(user.getLogin());
+            }
+        }).toList();
+    }
+
+    @Override
+    public Observable<Issue> issues() {
+        return issuesList().flatMap(new Func1<List<Issue>, Observable<Issue>>() {
+            @Override
+            public Observable<Issue> call(List<Issue> issues) {
+                return Observable.from(issues);
             }
         });
     }

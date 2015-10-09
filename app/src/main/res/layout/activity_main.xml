@@ -19,4 +19,16 @@
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:text="Request all issues"/>
+
+    <Button
+        android:id="@+id/request_with_zip"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="Request with zip"/>
+
+    <Button
+        android:id="@+id/request_with_flatmap"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="Request with flatmap"/>
 </LinearLayout>
