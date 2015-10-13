@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import rx.Observable;
+import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -38,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.request_all_issues_button).setOnClickListener(this);
         findViewById(R.id.request_with_zip).setOnClickListener(this);
         findViewById(R.id.request_with_flatmap).setOnClickListener(this);
+        findViewById(R.id.multiple_subscribers).setOnClickListener(this);
     }
 
     @Override
@@ -63,7 +65,48 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             requestWithZip();
         } else if (id == R.id.request_with_flatmap) {
             requestWithFlatMap();
+        } else if (id == R.id.multiple_subscribers) {
+            requestMultiple();
         }
+    }
+
+    private void requestMultiple() {
+        Observable<List<Issue>> issues = dataService.issuesList().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
+        final Subscriber<List<Issue>> subscriber1 = new Subscriber<List<Issue>>() {
+            @Override
+            public void onCompleted() {
+                Log.d(TAG, "Complete subscriber 1");
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.e(TAG, "Error subscriber 1", e);
+            }
+
+            @Override
+            public void onNext(List<Issue> issues) {
+                Log.d(TAG, "Issues in subscriber 1 received with size " + issues.size());
+            }
+        };
+
+        Subscriber<List<Issue>> subscriber2 = new Subscriber<List<Issue>>() {
+            @Override
+            public void onCompleted() {
+                Log.d(TAG, "Complete subscriber 2");
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.e(TAG, "Error subscriber 2", e);
+            }
+
+            @Override
+            public void onNext(List<Issue> issues) {
+                Log.d(TAG, "Issues in subscriber 2 received with size " + issues.size());
+            }
+        };
+        issues.subscribe(subscriber1);
+        issues.subscribe(subscriber2);
     }
 
     private void requestWithFlatMap() {
@@ -76,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public Observable<List<Issue>> call(User user) {
                 return dataService.issuesListByUser(user);
             }
-        }).subscribe(
+        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(
                 new Action1<List<Issue>>() {
                     @Override
                     public void call(List<Issue> issues) {
@@ -152,7 +195,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return;
         }
 
-        Subscription subscription = Observable.zip(dataService.issues().take(10), dataService.issues().takeLast(10), new Func2<Issue, Issue, Pair<Issue, Issue>>() {
+        Observable<Issue> issues = dataService.issues();
+        Subscription subscription = Observable.zip(issues.take(10), issues.takeLast(10), new Func2<Issue, Issue, Pair<Issue, Issue>>() {
             @Override
             public Pair<Issue, Issue> call(Issue issue, Issue issue2) {
                 return new Pair<>(issue, issue2);

@@ -31,4 +31,10 @@
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:text="Request with flatmap"/>
+
+    <Button
+        android:id="@+id/multiple_subscribers"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="Multiple subscribers"/>
 </LinearLayout>
