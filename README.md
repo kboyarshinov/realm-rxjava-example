@@ -1,3 +1,6 @@
+# DEPRECATED 
+Use native [RxJava support](https://realm.io/news/realm-java-0.87.0/) in Realm
+
 # realm-rxjava-example
 Example of using Realm with RxJava on Android
 
